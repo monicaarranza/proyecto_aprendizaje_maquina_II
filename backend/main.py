@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 import pytesseract
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 from PIL import Image
 import io
 
@@ -13,7 +14,7 @@ try:
 except ImportError:
     yolo_model = None
 
-# Captioning setup
+
 try:
     from transformers import BlipProcessor, BlipForConditionalGeneration
     import requests
@@ -44,13 +45,13 @@ def root():
 async def ocr_endpoint(file: UploadFile = File(...)):
     image_bytes = await file.read()
     image = Image.open(io.BytesIO(image_bytes))
-    # Use Spanish language for OCR
-    text = pytesseract.image_to_string(image, lang='spa')
+ 
+    text = pytesseract.image_to_string(image, lang='eng')
     return {"text": text}
 
 
 
-# Endpoint de detección de objetos (YOLOv8 real)
+# Endpoint de deteccion de objetos (YOLOv8 real)
 @app.post("/detect/")
 async def detect_objects(file: UploadFile = File(...)):
     if yolo_model is None:
@@ -68,7 +69,7 @@ async def detect_objects(file: UploadFile = File(...)):
     return {"objects": list(detected)}
 
 
-# Endpoint de captioning de imagen (BLIP real + traducción Google Translate API)
+# Endpoint de captioning de imagen 
 @app.post("/caption/")
 async def caption_image(file: UploadFile = File(...)):
     if caption_processor is None or caption_model is None:
@@ -78,7 +79,7 @@ async def caption_image(file: UploadFile = File(...)):
     inputs = caption_processor(images=image, return_tensors="pt")
     out = caption_model.generate(**inputs)
     caption_en = caption_processor.decode(out[0], skip_special_tokens=True)
-    # Traducción usando Google Translate API pública (no oficial)
+    
     try:
         resp = requests.get(
             "https://translate.googleapis.com/translate_a/single",
@@ -96,4 +97,4 @@ async def caption_image(file: UploadFile = File(...)):
         caption_es = data[0][0][0] if data and data[0] and data[0][0] else caption_en
     except Exception:
         caption_es = caption_en
-    return {"caption": caption_es}
+    return {"caption": caption_en}
