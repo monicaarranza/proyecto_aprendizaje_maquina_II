@@ -1,0 +1,12 @@
+# Requisitos para el backend
+
+fastapi
+uvicorn
+pillow
+torch>=2.6
+torchvision
+opencv-python
+numpy>=1.26.4,<2
+python-multipart
+pytesseract
+gTTS
